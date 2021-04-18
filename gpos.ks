@@ -47,7 +47,7 @@ declare function getBurnTime {
         set deltaV to deltaV:mag.
     }
     if isp = 0 {
-        set isp to _avg_isp().
+        set isp to getAvgIsp().
     }
     
     local burnTime is -1.
@@ -193,9 +193,9 @@ declare function playSound {
     set V0 to GetVoice(0).
     V0:PLAY(
         LIST(
-            NOTE("C", 0.2,  0.35), // quarter note, of which the last 0.05s is 'release'.
-            NOTE("Am",  0.2,  0.35), // quarter note, of which the last 0.05s is 'release'.
-            SLIDENOTE("E", "A", 0.45, 0.4) // half note that slides from C5 to F5 as it goes.
+            NOTE("C", 0.2,  0.35),
+            NOTE("Am",  0.2,  0.35),
+            SLIDENOTE("E", "A", 0.45, 0.4)
         )
     ).
 }
