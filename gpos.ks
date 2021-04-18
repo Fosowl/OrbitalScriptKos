@@ -1,4 +1,6 @@
 
+// general purpose orbital script
+
 clearscreen.
 
 set KSC to latlng(-0.0972092543643722, -74.557706433623).
@@ -7,8 +9,6 @@ set flight_msg to "standbye".
 set old_msg to flight_msg.
 set flight_step to 0.
 
-set lng_pass to 0.
-set burnStarted to 0.
 set radarOffset to 5.    // "alt:radar" of the vehicle when landed
 
 set target_pitch to 90.
@@ -21,10 +21,22 @@ lock max_acc to ship:maxthrust/ship:mass.
 // Physics landing
 lock trueRadar to alt:radar - radarOffset.                  // Distance from the bottom of vehicle to the ground
 lock g to constant:g * body:mass / body:radius^2.           // Gravitational acceleration
-lock maxDecel to (ship:availablethrust / ship:mass) - g.    // Maximum achievable deceleration of the vehicle
-lock stopDist to ship:verticalspeed^2 / (2 * maxDecel).     // Distance to kill all the velocity
-lock idealThrottle to stopDist / trueRadar.                 // Hoverslam throttling setting
-lock impactTime to trueRadar / abs(ship:verticalspeed).     // Time to impact with the current velocity 
+lock impactTime to trueRadar / abs(ship:verticalspeed).     // Time to impact with the current velocity opDist / trueRadar.                 // Hoverslam throttling setting
+
+set M to body:mass.
+set e to 2.71828.
+set PR to 6371000.        //planetary radius
+set Ppsl to 1.           //Planet's pressure at sea level
+set CoD to .2.          // fill in for your rocket
+set AtmoSH to 5000.    //Atmo scale height
+
+// Atmospheric physics
+lock Fgrav to (-1 * g * M) / (PR + altitude ) ^ 2.
+lock Fdrag to .5 * CoD * velocity:surface:mag ^ 2 * mass / 125 * 1.223 * e ^ ( -1 * altitude / AtmoSH ).
+lock vterm to ( ( 204.4 * g * M) / ( ( PR + altitude ) ^ 2 * CoD * Ppsl ) * e ^ ( altitude / AtmoSH ) ) ^ .5.
+lock Fneed to -1 * Fgrav + ( mass  * ( vterm - velocity:surface:mag ) ) / 1 + Fdrag.
+// Fneed is the force needed to close the gap (term vel - current vel) in 1 sec.
+lock idealAtmThrottle to 1 - (1 - ( Fneed / maxthrust ) ).
 
 // Burn time from rocket equation
 declare function getBurnTime {
@@ -91,17 +103,28 @@ declare function getAvgIsp {
 
 // impact coordinate, taking atmospheric drag into account
 declare function getImpactCoord {
-    return ADDONS:TR:IMPACTPOS.
+    if ADDONS:TR:AVAILABLE {
+        return ADDONS:TR:IMPACTPOS.
+    }
+    alert("Trajectories module not available", 10).
 }
 
 // return true if trajectorie lead to ground impact
 declare function willImpact {
-    return ADDONS:TR:HASIMPACT.
+    if ADDONS:TR:AVAILABLE {
+        return ADDONS:TR:HASIMPACT.
+    }
+    alert("Trajectories module not available", 10).
+    return false.
 }
 
 // return time till impact with ground
 declare function timeTillImpact {
-    return ADDONS:TR:TIMETILLIMPACT.
+    if ADDONS:TR:AVAILABLE {
+        return ADDONS:TR:TIMETILLIMPACT.
+    }
+    alert("Trajectories module not available", 10).
+    return -1.
 }
 
 // check that all parameters are coherent for flight.
@@ -189,7 +212,7 @@ declare function abortPhase {
     wait 0.7.
     playSound().
     wait 30.
-    iogzji.
+    shutdown.
 }
 
 // calculate DeltaV needed to make it to orbit
@@ -203,6 +226,15 @@ declare function toOrbitDeltaV {
         return 15000.
     }
     return v_new - v_old.
+}
+
+declare function checkSeparation {
+    parameter core_name.
+    set PartsL to SHIP:PARTSDUBBED(core_name).
+    if PartsL:length = 0 {
+        return true.
+    }
+    return false.
 }
 
 // change current flight message, showed by "showFlightData"
@@ -221,6 +253,7 @@ declare function setFlightMsg {
 lock steering to up.
 preFlightChecklist().
 count_down(5).
+SAS off.
 takeOff().
 showFlightData(flight_msg).
 wait 1.
@@ -285,6 +318,7 @@ declare function suborbitalCourse {
         set target_pitch to (target_apoapsis / 1000) - (ship:apoapsis / 1000).
         set target_pitch to min(target_pitch + 10, 90).
         lock steering to heading(target_direction, target_pitch).
+        lock throttle to idealAtmThrottle.
         wait 0.1.
     }
 }
@@ -332,7 +366,9 @@ declare function circularizeCourse {
 // execute orbital action depending on mission
 declare function orbitalAction {
     setFlightMsg("Payload Release").
-    stage.
+    BAYS ON.
+    RADIATORS ON.
+    AG5 on.
     wait 5.
     clearscreen.
     print "Mission ended".
