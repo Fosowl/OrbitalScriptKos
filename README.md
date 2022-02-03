@@ -1,7 +1,9 @@
 # Orbital Script for Kerbal Space Program "Kos" mod
 
-A useful general purpose orbital script, working but not complete yet.
+Since my youngest age was I passionate about rocket, airplane and everything related to space or the sky.. Later I discovered an interest for computer science, a more accesible hobby, my passion for space was left behind until I discovered the "Kerbal Operating System" mod for KSP...
 
+I found a way to combine what I was good at with what I was most fascinated about, and this tiny `.ks` file is one of my best creation using KOS.
 
-<iframe src='https://gfycat.com/ifr/LeafyPracticalHog' frameborder='0' scrolling='no' allowfullscreen width='640' height='404'></iframe><p> <a href="https://gfycat.com/leafypracticalhog-kerbal-space-program-splash-down-falcon9-wading">via Gfycat</a></p>
+If you didn't know about KOS check [this](https://ksp-kos.github.io/KOS/) link.
 
+Good Luck !
