@@ -6,4 +6,8 @@ I found a way to combine what I was good at with what I was most fascinated abou
 
 If you didn't know about KOS check [this](https://ksp-kos.github.io/KOS/) link.
 
+The script has realtime verbose to display in-flight information, ability to recover from error, and even use audio capability of the mod so you can go get a coffee while your rocket make it to orbit.
+
+This is a "work in progress" that I may finish someday, some function of the function or variable may not even be used (:
+
 Good Luck !
